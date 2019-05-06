@@ -20,14 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.apache.avro</groupId>
-    <artifactId>avro-parent</artifactId>
-    <version>1.8.2</version>
-    <relativePath>../</relativePath>
-  </parent>
-
+  <groupId>com.marvinformatics.avro</groupId>
   <artifactId>avro-maven-plugin</artifactId>
+  <version>1.8.3-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Avro Maven Plugin</name>
@@ -38,11 +33,16 @@
   </prerequisites>
 
   <properties>
-    <pluginTestingVersion>1.3</pluginTestingVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <coveralls.token></coveralls.token>
+    <coveralls.token>5lc7DlGcCGcb8V5MJwMWBHGfG80TtWmfb</coveralls.token>
+
+    <plugin-plugin.version>3.3</plugin-plugin.version>
+    <pluginTestingVersion>1.3</pluginTestingVersion>
     <java.version>1.8</java.version>
+    <maven.version>2.0.10</maven.version>
+    <avro.version>1.8.2</avro.version>
+    <file-management.version>1.2.1</file-management.version>
   </properties>
 
   <dependencies>
@@ -58,14 +58,25 @@
       <version>${maven.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>file-management</artifactId>
       <version>${file-management.version}</version>
     </dependency>
+    <!-- avro -->
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>org.apache.avro</groupId>
       <artifactId>avro-compiler</artifactId>
-      <version>${project.version}</version>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
     </dependency>
     <!-- test-->
     <dependency>
@@ -84,6 +95,18 @@
       <groupId>org.apache.maven.plugin-testing</groupId>
       <artifactId>maven-plugin-testing-harness</artifactId>
       <version>${pluginTestingVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <version>1.0.b2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
+      <version>4aug2000r7-dev</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -156,6 +179,17 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <argLine>${argLine} -Xmx2G</argLine>
+          <includes>
+            <!-- Avro naming convention for JUnit tests -->
+            <include>**/Test**</include>
+          </includes>
+          <excludes>
+            <!-- A few innner classes are not to be tested -->
+            <exclude>**/*$*</exclude>
+            <!-- exclude the generated classes under apache.avro.test, some of
+              these match **/Test** and are not JUnit tests -->
+            <exclude>**/apache/avro/test/**</exclude>
+          </excludes>
         </configuration>
       </plugin>
 
@@ -287,9 +321,9 @@
     </plugins>
   </build>
 
-  <url>https://github.com/${owner}/${name}/</url>
+  <url>https://github.com/velo/avro-maven-plugin/</url>
 
-  <inceptionYear>${year}</inceptionYear>
+  <inceptionYear>2019</inceptionYear>
 
   <licenses>
     <license>
@@ -309,9 +343,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:${owner}/${name}.git</connection>
-    <developerConnection>scm:git:git@github.com:${owner}/${name}.git</developerConnection>
-    <url>https://github.com/${owner}/${name}/</url>
+    <connection>scm:git:git@github.com:velo/avro-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:velo/avro-maven-plugin.git</developerConnection>
+    <url>https://github.com/velo/avro-maven-plugin/</url>
   </scm>
 
   <distributionManagement>
