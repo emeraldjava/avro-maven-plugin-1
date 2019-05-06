@@ -17,17 +17,17 @@
  */
 package org.apache.avro.mojo;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
+import org.apache.avro.SchemaParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Base for Avro Compiler Mojos.
@@ -74,7 +74,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
      * A list of files or directories that should be compiled first thus making them
      * importable by subsequently compiled schemas. Note that imported files should
      * not reference each other.
-     * 
+     *
      * @parameter
      */
     protected String[] imports;
@@ -138,10 +138,10 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        boolean hasSourceDir = null != sourceDirectory
+        final boolean hasSourceDir = null != sourceDirectory
                 && sourceDirectory.isDirectory();
-        boolean hasImports = null != imports;
-        boolean hasTestDir = null != testSourceDirectory
+        final boolean hasImports = null != imports;
+        final boolean hasTestDir = null != testSourceDirectory
                 && testSourceDirectory.isDirectory();
         if (!hasSourceDir && !hasTestDir) {
             throw new MojoExecutionException("neither sourceDirectory: "
@@ -150,10 +150,10 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
         }
 
         if (hasImports) {
-            for (String importedFile : imports) {
-                File file = new File(importedFile);
+            for (final String importedFile : imports) {
+                final File file = new File(importedFile);
                 if (file.isDirectory()) {
-                    String[] includedFiles = getIncludedFiles(file.getAbsolutePath(), excludes, getIncludes());
+                    final String[] includedFiles = getIncludedFiles(file.getAbsolutePath(), excludes, getIncludes());
                     getLog().info("Importing Directory: " + file.getAbsolutePath());
                     getLog().debug("Importing Directory Files: " + Arrays.toString(includedFiles));
                     compileFiles(includedFiles, file, outputDirectory);
@@ -165,7 +165,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
         }
 
         if (hasSourceDir) {
-            String[] includedFiles = getIncludedFiles(
+            final String[] includedFiles = getIncludedFiles(
                     sourceDirectory.getAbsolutePath(), excludes, getIncludes());
             compileFiles(includedFiles, sourceDirectory, outputDirectory);
         }
@@ -175,7 +175,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
         }
 
         if (hasTestDir) {
-            String[] includedFiles = getIncludedFiles(
+            final String[] includedFiles = getIncludedFiles(
                     testSourceDirectory.getAbsolutePath(), testExcludes,
                     getTestIncludes());
             compileFiles(includedFiles, testSourceDirectory, testOutputDirectory);
@@ -185,8 +185,8 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
 
     private String[] getIncludedFiles(String absPath, String[] excludes,
             String[] includes) {
-        FileSetManager fileSetManager = new FileSetManager();
-        FileSet fs = new FileSet();
+        final FileSetManager fileSetManager = new FileSetManager();
+        final FileSet fs = new FileSet();
         fs.setDirectory(absPath);
         fs.setFollowSymlinks(false);
 
@@ -194,8 +194,8 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
         if (imports != null) {
             String importExclude = null;
 
-            for (String importFile : this.imports) {
-                File file = new File(importFile);
+            for (final String importFile : this.imports) {
+                final File file = new File(importFile);
 
                 if (file.isDirectory()) {
                     importExclude = file.getName() + "/**";
@@ -206,20 +206,35 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
                 fs.addExclude(importExclude);
             }
         }
-        for (String include : includes) {
+        for (final String include : includes) {
             fs.addInclude(include);
         }
-        for (String exclude : excludes) {
+        for (final String exclude : excludes) {
             fs.addExclude(exclude);
         }
         return fileSetManager.getIncludedFiles(fs);
     }
 
     private void compileFiles(String[] files, File sourceDir, File outDir) throws MojoExecutionException {
-        for (String filename : files) {
+        final Queue<String> pendingFiles = new LinkedList<>(Arrays.asList(files));
+        final Set<String> filesAlreadyRetried = new HashSet<>();
+
+        String filename;
+        while ((filename = pendingFiles.poll()) != null) {
             try {
                 doCompile(filename, sourceDir, outDir);
-            } catch (IOException e) {
+                filesAlreadyRetried.clear();
+                getLog().info("Sources generated for: " + filename);
+            } catch (final SchemaParseException e) {
+                if (filesAlreadyRetried.contains(filename)) {
+                    throw new MojoExecutionException("Error compiling protocol file "
+                            + filename + " to " + outDir, e);
+                } else {
+                    getLog().warn("Will retry " + filename + " after all other files are processed");
+                    pendingFiles.add(filename);
+                    filesAlreadyRetried.add(filename);
+                }
+            } catch (final IOException e) {
                 throw new MojoExecutionException("Error compiling protocol file "
                         + filename + " to " + outDir, e);
             }
@@ -228,9 +243,9 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
 
     protected SpecificCompiler.FieldVisibility getFieldVisibility() {
         try {
-            String upper = String.valueOf(this.fieldVisibility).trim().toUpperCase();
+            final String upper = String.valueOf(this.fieldVisibility).trim().toUpperCase();
             return SpecificCompiler.FieldVisibility.valueOf(upper);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             return SpecificCompiler.FieldVisibility.PUBLIC_DEPRECATED;
         }
     }

@@ -17,13 +17,16 @@
  */
 package org.apache.avro.mojo;
 
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Parser;
+import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.apache.avro.generic.GenericData.StringType;
 
 import java.io.File;
 import java.io.IOException;
-
-import org.apache.avro.Schema;
-import org.apache.avro.compiler.specific.SpecificCompiler;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Generate Java classes from Avro schema files (.avsc)
@@ -37,7 +40,7 @@ public class SchemaMojo extends AbstractAvroMojo {
      * A parser used to parse all schema files. Using a common parser will
      * facilitate the import of external schemas.
      */
-    private Schema.Parser schemaParser = new Schema.Parser();
+    private final Schema.Parser schemaParser = new Schema.Parser();
 
     /**
      * A set of Ant-like inclusion patterns used to select files from the source
@@ -46,7 +49,7 @@ public class SchemaMojo extends AbstractAvroMojo {
      *
      * @parameter
      */
-    private String[] includes = new String[] { "**/*.avsc" };
+    private final String[] includes = new String[] { "**/*.avsc" };
 
     /**
      * A set of Ant-like inclusion patterns used to select files from the source
@@ -55,24 +58,17 @@ public class SchemaMojo extends AbstractAvroMojo {
      *
      * @parameter
      */
-    private String[] testIncludes = new String[] { "**/*.avsc" };
+    private final String[] testIncludes = new String[] { "**/*.avsc" };
 
     @Override
     protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
-        File src = new File(sourceDirectory, filename);
-        Schema schema;
+        final File src = new File(sourceDirectory, filename);
+        final Parser localSchemaParser = new Schema.Parser();
+        final Map<String, Schema> types = schemaParser.getTypes();
+        localSchemaParser.addTypes(types);
+        final Schema schema = localSchemaParser.parse(src);
 
-        // This is necessary to maintain backward-compatibility. If there are
-        // no imported files then isolate the schemas from each other, otherwise
-        // allow them to share a single schema so resuse and sharing of schema
-        // is possible.
-        if (imports == null) {
-            schema = new Schema.Parser().parse(src);
-        } else {
-            schema = schemaParser.parse(src);
-        }
-
-        SpecificCompiler compiler = new SpecificCompiler(schema);
+        final SpecificCompiler compiler = new SpecificCompiler(schema);
         compiler.setTemplateDir(templateDirectory);
         compiler.setStringType(StringType.valueOf(stringType));
         compiler.setFieldVisibility(getFieldVisibility());
@@ -80,6 +76,14 @@ public class SchemaMojo extends AbstractAvroMojo {
         compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
         compiler.setOutputCharacterEncoding(project.getProperties().getProperty("project.build.sourceEncoding"));
         compiler.compileToDestination(src, outputDirectory);
+
+        final Map<String, Schema> newTypes = localSchemaParser.getTypes()
+                .values()
+                .stream()
+                .filter(candidate -> !types.containsValue(candidate))
+                .collect(Collectors.toMap(Schema::getFullName, Function.identity()));
+
+        this.schemaParser.addTypes(newTypes);
     }
 
     @Override
