@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.avro.mojo;
 
 import org.apache.avro.generic.GenericData.StringType;
@@ -34,44 +33,44 @@ import org.apache.avro.compiler.specific.SpecificCompiler;
  * @threadSafe
  */
 public class ProtocolMojo extends AbstractAvroMojo {
-  /**
-   * A set of Ant-like inclusion patterns used to select files from the source
-   * directory for processing. By default, the pattern
-   * <code>**&#47;*.avpr</code> is used to select grammar files.
-   *
-   * @parameter
-   */
-  private String[] includes = new String[] { "**/*.avpr" };
+    /**
+     * A set of Ant-like inclusion patterns used to select files from the source
+     * directory for processing. By default, the pattern <code>**&#47;*.avpr</code>
+     * is used to select grammar files.
+     *
+     * @parameter
+     */
+    private String[] includes = new String[] { "**/*.avpr" };
 
-  /**
-   * A set of Ant-like inclusion patterns used to select files from the source
-   * directory for processing. By default, the pattern
-   * <code>**&#47;*.avpr</code> is used to select grammar files.
-   *
-   * @parameter
-   */
-  private String[] testIncludes = new String[] { "**/*.avpr" };
+    /**
+     * A set of Ant-like inclusion patterns used to select files from the source
+     * directory for processing. By default, the pattern <code>**&#47;*.avpr</code>
+     * is used to select grammar files.
+     *
+     * @parameter
+     */
+    private String[] testIncludes = new String[] { "**/*.avpr" };
 
-  @Override
-  protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
-    File src = new File(sourceDirectory, filename);
-    Protocol protocol = Protocol.parse(src);
-    SpecificCompiler compiler = new SpecificCompiler(protocol);
-    compiler.setTemplateDir(templateDirectory);
-    compiler.setStringType(StringType.valueOf(stringType));
-    compiler.setFieldVisibility(getFieldVisibility());
-    compiler.setCreateSetters(createSetters);
-    compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
-    compiler.compileToDestination(src, outputDirectory);
-  }
+    @Override
+    protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
+        File src = new File(sourceDirectory, filename);
+        Protocol protocol = Protocol.parse(src);
+        SpecificCompiler compiler = new SpecificCompiler(protocol);
+        compiler.setTemplateDir(templateDirectory);
+        compiler.setStringType(StringType.valueOf(stringType));
+        compiler.setFieldVisibility(getFieldVisibility());
+        compiler.setCreateSetters(createSetters);
+        compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
+        compiler.compileToDestination(src, outputDirectory);
+    }
 
-  @Override
-  protected String[] getIncludes() {
-    return includes;
-  }
+    @Override
+    protected String[] getIncludes() {
+        return includes;
+    }
 
-  @Override
-  protected String[] getTestIncludes() {
-    return testIncludes;
-  }
+    @Override
+    protected String[] getTestIncludes() {
+        return testIncludes;
+    }
 }

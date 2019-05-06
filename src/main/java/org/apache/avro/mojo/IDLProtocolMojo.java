@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.avro.mojo;
 
 import java.io.File;
@@ -42,74 +41,72 @@ import org.apache.maven.artifact.DependencyResolutionRequiredException;
  * @threadSafe
  */
 public class IDLProtocolMojo extends AbstractAvroMojo {
-  /**
-   * A set of Ant-like inclusion patterns used to select files from the source
-   * directory for processing. By default, the pattern
-   * <code>**&#47;*.avdl</code> is used to select IDL files.
-   *
-   * @parameter
-   */
-  private String[] includes = new String[] { "**/*.avdl" };
+    /**
+     * A set of Ant-like inclusion patterns used to select files from the source
+     * directory for processing. By default, the pattern <code>**&#47;*.avdl</code>
+     * is used to select IDL files.
+     *
+     * @parameter
+     */
+    private String[] includes = new String[] { "**/*.avdl" };
 
-  /**
-   * A set of Ant-like inclusion patterns used to select files from the source
-   * directory for processing. By default, the pattern
-   * <code>**&#47;*.avdl</code> is used to select IDL files.
-   *
-   * @parameter
-   */
-  private String[] testIncludes = new String[] { "**/*.avdl" };
+    /**
+     * A set of Ant-like inclusion patterns used to select files from the source
+     * directory for processing. By default, the pattern <code>**&#47;*.avdl</code>
+     * is used to select IDL files.
+     *
+     * @parameter
+     */
+    private String[] testIncludes = new String[] { "**/*.avdl" };
 
-  @Override
-  protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
-    try {
-      @SuppressWarnings("rawtypes")
-      List runtimeClasspathElements = project.getRuntimeClasspathElements();
-      Idl parser;
+    @Override
+    protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
+        try {
+            @SuppressWarnings("rawtypes")
+            List runtimeClasspathElements = project.getRuntimeClasspathElements();
+            Idl parser;
 
-      List<URL> runtimeUrls = new ArrayList<URL>();
+            List<URL> runtimeUrls = new ArrayList<URL>();
 
-      // Add the source directory of avro files to the classpath so that
-      // imports can refer to other idl files as classpath resources
-      runtimeUrls.add(sourceDirectory.toURI().toURL());
+            // Add the source directory of avro files to the classpath so that
+            // imports can refer to other idl files as classpath resources
+            runtimeUrls.add(sourceDirectory.toURI().toURL());
 
-      // If runtimeClasspathElements is not empty values add its values to Idl path.
-      if (runtimeClasspathElements != null && !runtimeClasspathElements.isEmpty()) {
-        for (Object runtimeClasspathElement : runtimeClasspathElements) {
-          String element = (String) runtimeClasspathElement;
-          runtimeUrls.add(new File(element).toURI().toURL());
-      }
-      }
+            // If runtimeClasspathElements is not empty values add its values to Idl path.
+            if (runtimeClasspathElements != null && !runtimeClasspathElements.isEmpty()) {
+                for (Object runtimeClasspathElement : runtimeClasspathElements) {
+                    String element = (String) runtimeClasspathElement;
+                    runtimeUrls.add(new File(element).toURI().toURL());
+                }
+            }
 
-      URLClassLoader projPathLoader = new URLClassLoader
-          (runtimeUrls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
-        parser = new Idl(new File(sourceDirectory, filename), projPathLoader);
+            URLClassLoader projPathLoader = new URLClassLoader(runtimeUrls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
+            parser = new Idl(new File(sourceDirectory, filename), projPathLoader);
 
-      Protocol p = parser.CompilationUnit();
-      String json = p.toString(true);
-      Protocol protocol = Protocol.parse(json);
-      SpecificCompiler compiler = new SpecificCompiler(protocol);
-      compiler.setStringType(GenericData.StringType.valueOf(stringType));
-      compiler.setTemplateDir(templateDirectory);
-      compiler.setFieldVisibility(getFieldVisibility());
-      compiler.setCreateSetters(createSetters);
-      compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
-      compiler.compileToDestination(null, outputDirectory);
-    } catch (ParseException e) {
-      throw new IOException(e);
-    } catch (DependencyResolutionRequiredException drre) {
-      throw new IOException(drre);
+            Protocol p = parser.CompilationUnit();
+            String json = p.toString(true);
+            Protocol protocol = Protocol.parse(json);
+            SpecificCompiler compiler = new SpecificCompiler(protocol);
+            compiler.setStringType(GenericData.StringType.valueOf(stringType));
+            compiler.setTemplateDir(templateDirectory);
+            compiler.setFieldVisibility(getFieldVisibility());
+            compiler.setCreateSetters(createSetters);
+            compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
+            compiler.compileToDestination(null, outputDirectory);
+        } catch (ParseException e) {
+            throw new IOException(e);
+        } catch (DependencyResolutionRequiredException drre) {
+            throw new IOException(drre);
+        }
     }
-  }
 
-  @Override
-  protected String[] getIncludes() {
-    return includes;
-  }
+    @Override
+    protected String[] getIncludes() {
+        return includes;
+    }
 
-
-  @Override
-  protected String[] getTestIncludes() {
-    return testIncludes;
-  }
+    @Override
+    protected String[] getTestIncludes() {
+        return testIncludes;
+    }
 }

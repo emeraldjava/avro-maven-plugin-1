@@ -29,32 +29,34 @@ import org.apache.maven.plugin.testing.AbstractMojoTestCase;
  */
 public class AbstractAvroMojoTest extends AbstractMojoTestCase {
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
-
-  /**
-   * Assert the existence files in the given given directory.
-   *
-   * @param directory the directory being checked
-   * @param files the files whose existence is being checked.
-   */
-  protected void assertFilesExist(File directory, String... files) {
-    assertNotNull(directory);
-    assertTrue(directory.exists());
-    assertNotNull(files);
-    assertTrue(files.length > 0);
-
-    List<String> dirList = Arrays.asList(directory.list());
-
-    for (String file : files) {
-      assertTrue("File " + file + " does not exist.", dirList.contains(file));
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
     }
-  }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+    }
+
+    /**
+     * Assert the existence files in the given given directory.
+     *
+     * @param directory
+     *            the directory being checked
+     * @param files
+     *            the files whose existence is being checked.
+     */
+    protected void assertFilesExist(File directory, String... files) {
+        assertNotNull(directory);
+        assertTrue(directory.exists());
+        assertNotNull(files);
+        assertTrue(files.length > 0);
+
+        List<String> dirList = Arrays.asList(directory.list());
+
+        for (String file : files) {
+            assertTrue("File " + file + " does not exist.", dirList.contains(file));
+        }
+    }
 }

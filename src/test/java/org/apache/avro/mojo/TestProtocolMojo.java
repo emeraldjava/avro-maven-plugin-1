@@ -26,19 +26,19 @@ import java.io.File;
  */
 public class TestProtocolMojo extends AbstractAvroMojoTest {
 
-  protected File testPom = new File(getBasedir(),
-          "src/test/resources/unit/protocol/pom.xml");
+    protected File testPom = new File(getBasedir(),
+            "src/test/resources/unit/protocol/pom.xml");
 
-  public void testProtocolMojo() throws Exception {
-    ProtocolMojo mojo = (ProtocolMojo) lookupMojo("protocol", testPom);
+    public void testProtocolMojo() throws Exception {
+        ProtocolMojo mojo = (ProtocolMojo) lookupMojo("protocol", testPom);
 
-    assertNotNull(mojo);
-    mojo.execute();
+        assertNotNull(mojo);
+        mojo.execute();
 
-    File outputDir = new File(getBasedir(), "target/test-harness/protocol/test");
-    String[] generatedFiles = new String[]{"ProtocolPrivacy.java",
-      "ProtocolTest.java", "ProtocolUser.java"};
+        File outputDir = new File(getBasedir(), "target/test-harness/protocol/test");
+        String[] generatedFiles = new String[] { "ProtocolPrivacy.java",
+                "ProtocolTest.java", "ProtocolUser.java" };
 
-    assertFilesExist(outputDir, generatedFiles);
-  }
+        assertFilesExist(outputDir, generatedFiles);
+    }
 }
