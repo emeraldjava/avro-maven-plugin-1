@@ -110,7 +110,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
      *
      * @parameter property="templateDirectory"
      */
-    protected String templateDirectory = "/org/apache/avro/compiler/specific/templates/java/classic/";
+    protected String templateDirectory = "/simplified_templates/";
 
     /**
      * Determines whether or not to create setters for the fields of the record. The
